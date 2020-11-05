@@ -26,40 +26,47 @@ const PORT = parseInt(process.argv[2] || process.env.PORT) || 3000;
 const API_KEY = process.env.API_KEY || "";
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 
-const ENDPOINT = "https://gateway.marvel.com/v1/public/characters";
+const ENDPOINT = "https://gateway.marvel.com/v1/public";
 
 //For exploring API
 //http://gateway.marvel.com/v1/public/characters?ts=2&apikey=8f188521d4a0072171aec14a5984aa77&hash=20c9b8f074b298b96d808ba01fc734e7
 
 // Create md5 Hash
-let date = new Date;
-let ts = date.getTime();
+const createAuth = () => {
+    const date = new Date
+    const ts = date.getTime();
 
-let preHash = [ts, PRIVATE_KEY, API_KEY].join("");
-let md5Hash = cryptoJS.MD5(preHash).toString();
+    const preHash = [ts, PRIVATE_KEY, API_KEY].join("");
+    const md5Hash = cryptoJS.MD5(preHash).toString();
 
+    return {ts, md5Hash}
+};
 // const md5Hash = "e8b8bb8c12df952416c31bb622db9303"; // FIXED HASH FOR JUST TESTING
 
 // Queries
 const getCharacters = async (name) => {
+    const auth = createAuth();
+
+    console.log(auth);
+
     const url = withQuery(
-        ENDPOINT, {
-            ts: ts,
+        ENDPOINT + "/characters", {
+            ts: auth.ts,
             apikey: API_KEY,
-            hash: md5Hash,
+            hash: auth.md5Hash,
             nameStartsWith: name || " "
         }
-    )
+    );
 
     let result = await fetch(url);
     try {
         let rawResult = await result.json();
-        return rawResult
+        return rawResult;
     } catch (e) {
         console.error('ERROR');
         return Promise.reject(e);
     }
-}
+};
 
 // Partials
 // handlebars.registerPartial('leftSection', '{{leftSide}}');
@@ -72,27 +79,34 @@ app.get('/', async (req, res) => {
     res.status(200);
     res.type('text/html');
     res.render('index');
-})
+});
 
 app.get('/search', async (req, res) => {
     res.status(200);
     res.type('text/html');
 
-    const rawResult = await getCharacters(req.query.term);
+    try {
+        const rawResult = await getCharacters(req.query.term);
 
-    // const charThumbsArr = rawResult.data.results.map(
-    //     i => {
-    //         return `${i.thumbnail.path}.${i.thumbnail.extension}`;
-    //     }
-    // )
+        // const charThumbsArr = rawResult.data.results.map(
+        //     i => {
+        //         return `${i.thumbnail.path}.${i.thumbnail.extension}`;
+        //     }
+        // )
 
-    const charThumbsArr = `${rawResult.data.results[0].thumbnail.path}.${rawResult.data.results[0].thumbnail.extension}`;
+        console.log(rawResult);
 
-    console.log(charThumbsArr);
+        const charThumbsArr = `${rawResult.data.results[0].thumbnail.path}.${rawResult.data.results[0].thumbnail.extension}`;
 
-    res.render('thumbs', {
-        charThumbsArr
-    });
+        console.log(charThumbsArr);
+
+        res.render('thumbs', {
+            charThumbsArr
+        });
+    } catch (e) {
+        console.error('ERROR');
+        return Promise.reject(e);
+    }
 })
 
 // Start Server
