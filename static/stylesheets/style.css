@@ -1,0 +1,29 @@
+body {
+  color: white;
+  background-color: black;
+}
+
+h1 {
+  font-family: 'Open Sans Condensed', sans-serif;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 64px;
+  margin: 0 0 0;
+  padding: 20px 30px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.header-container {
+  display: block;
+  width: 700px;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 20px;
+  text-align: center;
+}
+
+.thumbs-container {
+  max-width: 300px;
+  max-height: 300px;
+}
